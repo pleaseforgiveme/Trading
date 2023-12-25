@@ -14,18 +14,40 @@ from binance.spot import Spot
 
 client = Spot()
 
+one_trillion = 1_000_000_000_000
+
 #
 def track_top_breakthrough():
     # for each candidate, do:
     pass
 
-def is_consolidating(prices, percentage, days=0):
-    # scan for the past d days for daily high/low
+# Fetch prices from Binance api and return a list of close prices
+def fetch_prices(symbol, interval, limit):
+    prices = []
+    klines = client.klines(symbol=symbol, interval=interval, limit=limit)
+    for kline in klines:
+        prices.append(float(kline[4]))
+    return prices
+
+# Fetch high and low prices from Binance api and return a list of prices
+# sample usage: 'BTCUSDT', '1d', 30
+def fetch_high_low_prices(symbol, interval, limit):
+    # price should be a list of prices of tuple (high, low)
+    prices = []
+    # should fetch the past limit days
+    klines = client.klines(symbol=symbol, interval=interval, limit=limit)
+    for kline in klines:
+        current_price = (float(kline[2]), float(kline[3]))
+        prices.append(current_price)
+    return prices
+
+def is_consolidating(prices, percentage, limit):
+    # scan for the past limit days for daily high/low
     resistance = 0 # also record the highest date(s)
-    support = 0  # also record the lowest date(s)
+    support = one_trillion  # also record the lowest date(s)
     for price in prices:
-        resistance = max(resistance, price)
-        support = min(resistance, price)
+        resistance = max(resistance, price[0])
+        support = min(support, price[1])
     bandwidth = resistance - support
     highest_days = []
     lowest_days = []
@@ -34,12 +56,26 @@ def is_consolidating(prices, percentage, days=0):
     # 2. at least two dates close to resistance or support,
     # i.e. |price - resistance| / resistance <= X% (or support)
     # We may need to tighten this rule to filter out fake ones.
-    if prices[-1] > resistance or prices[-1] < support:
+    if prices[-1][0] > resistance or prices[-1][1] < support:
         return False
     highest_count, lowest_count = 0, 0
+    print(f"resistance: {resistance}, support: {support}")
     for price in prices:
-        if (resistance - price) / resistance <= percentage:
+        assert resistance >= price[0] and support <= price[1]
+        if (resistance - price[0]) / resistance <= percentage:
             highest_count += 1
-        elif (price - support) / support <= percentage:
+        elif (price[1] - support) / support <= percentage:
             lowest_count += 1
     return highest_count >= 2 or lowest_count >= 2
+
+
+# main function
+def main():
+    # test case for is_consolidating for BTCUSDT for the past 23 and 24 days respectively
+    print(fetch_high_low_prices('BTCUSDT', '1d', 23))
+    #assert is_consolidating(fetch_high_low_prices('BTCUSDT', '1d', 23), 0.05, 23) == True
+    #assert is_consolidating(fetch_high_low_prices('BTCUSDT', '1d', 24), 0.05, 24) == False
+
+
+if __name__ == "__main__":
+    main()
