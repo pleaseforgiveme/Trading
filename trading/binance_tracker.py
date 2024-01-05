@@ -119,16 +119,16 @@ def replace_order(symbol, order_id, quantity, price):
     client.cancel_order(symbol=symbol, orderId=order_id)
     client.new_order(symbol=symbol, side='BUY', type='LIMIT', quantity=quantity, price=price)
 
-def get_balance():
-    print(client.account_snapshot('SPOT'))
+def get_balance(type='SPOT'):
+    print(client.account_snapshot(type=type))
 
 def main():
     # test case for is_consolidating for BTCUSDT for the past 23 and 24 days respectively
     #print(fetch_high_low_prices('BTCUSDT', '1d', 23))
     #assert is_consolidating(fetch_high_low_prices('BTCUSDT', '1d', 23), 0.05, 23) == True
     #assert is_consolidating(fetch_high_low_prices('BTCUSDT', '1d', 24), 0.05, 24) == False
-    #get_balance()
     get_balance()
+
 
 
 if __name__ == "__main__":

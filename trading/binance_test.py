@@ -4,7 +4,7 @@ Test functions in binance_tracker.py
 
 import unittest
 
-from binance_tracker import purchase_coin
+from binance_tracker import purchase_coin, sell_coin
 
 
 
@@ -24,8 +24,12 @@ class IntegerArithmeticTestCase(unittest.TestCase):
 def test_purchase_coin():
     purchase_coin('BTCUSDT', 0.001)
 
+#Test sell coin
+def test_sell_coin():
+    sell_coin('BTCUSDT', 0.000999)
+
 def main():
-    test_purchase_coin()
+    test_sell_coin()
 
 if __name__ == "__main__":
     main()
